@@ -1,0 +1,7 @@
+* Fix assignee hard-coded in template for colors.
+* Add tests for jira module.
+* Add links to user profiles.
+* Add parsing of due datetime to show warnings and errors.
+* Add packaging for Debian and Red Hat.
+* Add support for a config file.
+* Remove media directory and get directly from the server instead.

@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>{{ board.name }}</title>
+    <style type="text/css">
+{% include "style.css" %}
+    </style>
+  </head>
+
+  <body>
+    <div id="container">
+      {% set cell_count = board.categories|length * 2 -%}
+      <div id="top" class="row">
+        <div id="preheader" class="row">
+          <div class="position-0 width-{{ cell_count }} cell">
+            <h1>
+              {% if board.link -%}
+              <a href="{{ board.link|escape }}">{{ board.name }}</a>
+              {% else -%}
+              {{ board.name }}
+              {% endif -%}
+              <span class="item-count">{{ board|length }} items</span>
+            </h1>
+          </div>
+        </div>
+
+        <div id="header" class="row">
+          {% for category in board.categories -%}
+          <div class="position-{{ loop.index0 * 2 }} width-2 cell">
+            <h2>{{ category.name }}<br /><span class="item-count">{{ category|length }} items</span></h2>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div id="bottom" class="row">
+        {% for story in board.stories -%}
+        {%   if board.stories|length > 1 -%}
+        {%     if story.name -%}
+        <div class="tiles row story">
+          <div class="position-0 width-{{ cell_count }} cell">{{ story.name }}</div>
+        </div>
+        {%     else -%}
+        <div class="tiles row story">
+          <div class="position-0 width-{{ cell_count }} cell">uncategorized</div>
+        </div>
+        {%     endif -%}
+        {%   else -%}
+          <div class="tiles row no-story"></div>
+        {%   endif -%}
+        <div class="tiles row">
+          {% for category in board.categories -%}
+          <div class="position-{{ loop.index0 * 2 }} width-2 cell">
+            {% for item in story.categories.get(category.name) -%}
+            <div class="tile" style="background: {{ item.assignee|identity_color }}" title="{{ item.assignee }}">
+              <a href="{{ item.link|escape }}">{{ item.id }}</a>
+              <span class="sprite priority {{ item.priority|priority_style }}" title="{{ item.priority }}">&nbsp;</span>
+              <span class="sprite status {{ item.status|status_style }}" title="{{ item.status }}">&nbsp;</span>
+              <div>{{ item.summary|escape }}</div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+        {% for identity in board.identities -%}
+        <div class="legend row">
+          <div class="position-0 width-{{ cell_count }} cell">
+            <div class="legend-description" style="background: {{ identity.name|identity_color }}">
+              <h2>{{ identity.name }} <span class="item-count">{{ identity|length }} items</span></h2>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+        <div id="prefooter" class="row">
+          <div class="position-0 width-{{ cell_count }} cell">&nbsp;</div>
+        </div>
+
+        <div id="footer" class="row">
+          <div class="position-0 width-{{ cell_count }} cell">Generated on {{ now }}.</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

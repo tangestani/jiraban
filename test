@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import logging
+
+import optparse
+import unittest
+
+
+def test_with_runner(runner):
+    usage = "test.py [options] [<test filename>, ...]"
+
+    parser = optparse.OptionParser(usage=usage)
+
+    parser.add_option('--log-level')
+    parser.add_option('--verbose', action='store_true')
+    options, args = parser.parse_args()
+
+    if options.log_level:
+        log_level = logging.getLevelName(options.log_level.upper())
+        if log_level:
+            logger = logging.getLogger()
+            logger.setLevel(log_level)
+
+    if options.verbose:
+        runner.verbosity = 2
+
+    # Import late, after any and all sys.path jiggery pokery.
+    from jiraban.tests import find_tests
+
+    suite = find_tests(args)
+    result = runner.run(suite)
+    return not result.wasSuccessful()
+
+
+def test_with_unittest():
+    runner = unittest.TextTestRunner()
+    return test_with_runner(runner)
+
+
+if __name__ == "__main__":
+    runner = os.environ.get("TEST_RUNNER")
+    if not runner:
+        runner = "unittest"
+    runner_func = globals().get("test_with_%s" % runner.replace(".", "_"))
+    if not runner_func:
+        sys.exit("Test runner not found: %s" % runner)
+    sys.exit(runner_func())

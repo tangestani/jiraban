@@ -31,7 +31,7 @@ setup(
 This is a simple tool to generate a Kanban board from data in JIRA.
 """,
     packages=find_packages(),
-    requires=[
+    install_requires=[
         "jinja2",
         "requests",
         ],

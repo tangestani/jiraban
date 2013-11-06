@@ -64,7 +64,7 @@ class TestItem(ItemMixin, TestCase):
         self.assertEqual(item.priority, MAJOR)
         self.assertEqual(item.status, OPEN)
         self.assertEqual(item.summary, "test summary")
-        self.assertIs(item.assignee, None)
+        self.assertEqual(item.assignee, None)
         self.assertEqual(item.components, [])
         self.assertEqual(item.fix_versions, [])
 

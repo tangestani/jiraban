@@ -20,7 +20,6 @@ __all__ = [
     "run",
     ]
 
-import os
 import sys
 
 from getpass import getpass
@@ -60,7 +59,6 @@ Attributes:
 """ % "\n  ".join(sorted(get_attributes(Item).keys()))
 
     # Runner defaults
-    default_media = os.path.abspath(os.path.join(__file__, '../../../media'))
     default_output = "-"
     default_server = "http://localhost:8080"
 
@@ -77,10 +75,6 @@ Attributes:
         runner_group.add_option("--cache",
             metavar="FILE",
             help=("""Cache to use instead of a request on the server."""))
-        runner_group.add_option("-m", "--media",
-            metavar="DIR",
-            default=self.default_media,
-            help=("""Media directory, defaults to "%default"."""))
         runner_group.add_option("-o", "--output",
             metavar="FILE",
             default=self.default_output,
@@ -163,23 +157,22 @@ Attributes:
                 assignee=assignee,
                 component=options.component)
 
-        self.jira = JIRA(username, password, server=options.server)
+        self.jira = JIRA(options.server, username, password)
         self.board = Board(
-            self.jql, self.jira.get_html_url(self.jql),
+            self.jql, self.jira.query_html(self.jql).url,
             options.category, options.story, options.identity)
         self.cache = options.cache
-        self.media = options.media
         self.output = options.output
 
     def process(self):
         """See L{Application}."""
         try:
-            for item in self.jira.get_items(self.jql, self.cache):
+            for item in self.jira.iter_items(self.jql, self.cache):
                 self.board.add(item)
         except JIRAError, e:
             raise ApplicationError(e)
 
-        html = generate_html(self.board, self.media)
+        html = generate_html(self.board, self.jira)
 
         if self.output != "-":
             output_file = open(self.output, "w")

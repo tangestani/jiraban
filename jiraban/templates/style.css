@@ -1,11 +1,10 @@
 /* Blocks */
 body {
-  color: #222222;
   font-family: Ubuntu, "Bitstream Vera Sans", "DejaVu Sans", Tahoma, sans-serif;
   font-size: 12px;
   }
 body, #top {
-  background: url({{ "background"|sprite_url }}) repeat;
+  background-color: #222222;
   }
 a {
   text-decoration: none;

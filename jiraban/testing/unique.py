@@ -67,3 +67,20 @@ class UniqueMixin:
             prefix = separator.join([
                 "unique", "from", source, "line%d" % frame.f_lineno])
         return separator.join([prefix, str(self.get_unique_integer())])
+
+    def get_unique_url(self, scheme=None, host=None, path=None):
+        """Return a URL unique to this test instance.
+
+        @param scheme: Scheme of the URL, defaults to "http".
+        @param host: Host part of the URL, defaults to a subdomain
+            generated under "domain.com".
+        @param parth: Path part of the URL, generated to a unique string.
+        """
+        if scheme is None:
+            scheme = "http"
+        if host is None:
+            host = "%s.domain.com" % self.get_unique_string("domain")
+        if path is None:
+            path = "/%s" % self.get_unique_string("path")
+
+        return "%s://%s%s" % (scheme, host, path)

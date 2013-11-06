@@ -68,3 +68,30 @@ class TestUniqueMixin(UniqueMixin, TestCase):
         """
         string = self.get_unique_string(separator="*")
         self.assertTrue("*" in string)
+
+    def test_get_unique_url_with_scheme(self):
+        """
+        When getting a unique URL with a scheme, the URL should have
+        that scheme.
+        """
+        scheme = self.get_unique_string()
+        url = self.get_unique_url(scheme=scheme)
+        self.assertEqual(urlparse(url).scheme, scheme)
+
+    def test_get_unique_url_with_host(self):
+        """
+        When getting a unique URL with a host, the URL should have
+        that host.
+        """
+        host = self.get_unique_string()
+        url = self.get_unique_url(host=host)
+        self.assertEqual(urlparse(url).netloc, host)
+
+    def test_get_unique_url_with_path(self):
+        """
+        When getting a unique URL with a path, the URL should have
+        that path.
+        """
+        path = "/%s" % self.get_unique_string()
+        url = self.get_unique_url(path=path)
+        self.assertEqual(urlparse(url).path, path)

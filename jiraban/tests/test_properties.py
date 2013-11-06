@@ -36,21 +36,21 @@ from jiraban.variables import (
 from unittest import TestCase
 
 
-class CustomVariable(Variable):
+class FakeVariable(Variable):
     pass
 
 
-class Custom(PropertyType):
-    variable_class = CustomVariable
+class FakeType(PropertyType):
+    variable_class = FakeVariable
 
 
 class TestProperty(TestCase):
 
     def setUp(self):
         class Class:
-            prop1 = Custom()
-            prop2 = Custom()
-            prop3 = Custom(default=50, required=True)
+            prop1 = FakeType()
+            prop2 = FakeType()
+            prop3 = FakeType(default=50, required=True)
 
         class SubClass(Class):
             pass
@@ -82,20 +82,20 @@ class TestProperty(TestCase):
 
     def test_variable_factory(self):
         variable = self.Class.prop1.variable_factory()
-        self.assertTrue(isinstance(variable, CustomVariable))
+        self.assertTrue(isinstance(variable, FakeVariable))
 
         variable = self.Class.prop3.variable_factory()
-        self.assertTrue(isinstance(variable, CustomVariable))
+        self.assertTrue(isinstance(variable, FakeVariable))
 
     def test_coerce(self):
-        prop = Custom()
-        self.assertIs(prop.coerce(None), None)
+        prop = FakeType()
+        self.assertEqual(prop.coerce(None), None)
         self.assertEqual(prop.coerce(0), 0)
 
     def test_default(self):
         obj = self.SubClass()
-        self.assertIs(obj.prop1, None)
-        self.assertIs(obj.prop2, None)
+        self.assertEqual(obj.prop1, None)
+        self.assertEqual(obj.prop2, None)
         self.assertEqual(obj.prop3, 50)
 
     def test_set_get(self):
@@ -111,8 +111,8 @@ class TestProperty(TestCase):
         obj = self.Class()
         obj.prop1 = None
         obj.prop2 = None
-        self.assertIs(obj.prop1, None)
-        self.assertIs(obj.prop2, None)
+        self.assertEqual(obj.prop1, None)
+        self.assertEqual(obj.prop2, None)
         self.assertRaises(ValueError, setattr, obj, "prop3", None)
 
     def test_set_get_subclass(self):
@@ -187,7 +187,7 @@ class TestString(PropertyMixin, TestCase):
         self.assertEqual(self.obj.prop1, "def")
         self.assertRaises(ValueError, setattr, self.obj, "prop1", None)
         self.obj.prop2 = None
-        self.assertIs(self.obj.prop2, None)
+        self.assertEqual(self.obj.prop2, None)
 
         self.assertRaises(ValueError, setattr, self.obj, "prop1", 0)
 
@@ -209,7 +209,7 @@ class TestUnicode(PropertyMixin, TestCase):
         self.assertEqual(self.obj.prop1, u"def")
         self.assertRaises(ValueError, setattr, self.obj, "prop1", None)
         self.obj.prop2 = None
-        self.assertIs(self.obj.prop2, None)
+        self.assertEqual(self.obj.prop2, None)
 
         self.assertRaises(ValueError, setattr, self.obj, "prop1", 0)
 
@@ -231,7 +231,7 @@ class TestList(PropertyMixin, TestCase):
         self.assertEqual(self.obj.prop1, [])
         self.assertRaises(ValueError, setattr, self.obj, "prop1", None)
         self.obj.prop2 = None
-        self.assertIs(self.obj.prop2, None)
+        self.assertEqual(self.obj.prop2, None)
 
         self.obj.prop1 = ["a"]
         self.assertEqual(self.obj.prop1, ["a"])

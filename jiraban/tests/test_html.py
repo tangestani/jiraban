@@ -18,8 +18,6 @@ __metaclass__ = type
 
 __all__ = []
 
-import os
-
 from jiraban.board import (
     IN_PROGRESS,
     MAJOR,
@@ -34,7 +32,7 @@ from jiraban.html import (
     status_style,
     generate_html,
     )
-from jiraban.testing.temp import TempMixin
+from jiraban.tests.test_jira import JIRAMixin
 
 from unittest import TestCase
 
@@ -66,21 +64,22 @@ class TestStatusStyle(TestCase):
         for status in IN_PROGRESS, READY_FOR_QA, READY_FOR_SPRINT:
             self.assertEqual(status_style(status), "status-inprogress")
 
-class TestSpriteUrl(TempMixin, TestCase):
+
+class TestSpriteUrl(JIRAMixin, TestCase):
 
     def test_empty(self):
         """
         An empty sprite returns an empty data string.
         """
-        file = self.make_file(suffix=".png", content="")
-        sprite = os.path.splitext(os.path.basename(file))[0]
-        media = os.path.dirname(file)
-        self.assertEqual(sprite_url(sprite, media), "data:image/png;base64,")
+        jira = self.create_jira()
+        self.assertEqual(
+            sprite_url("test.gif", jira), "data:image/gif;base64,")
 
 
-class TestGenerateHTML(TestCase):
+class TestGenerateHTML(JIRAMixin, TestCase):
 
     def test_empty_board(self):
+        jira = self.create_jira()
         board = Board("test")
-        html = generate_html(board)
+        html = generate_html(board, jira)
         self.assertTrue("<title>test</title>" in html)

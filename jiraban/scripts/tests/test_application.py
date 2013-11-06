@@ -127,7 +127,7 @@ class TestApplication(UniqueMixin, TestCase):
         custom options.
         """
         application = StubApplication()
-        self.assertIs(application.option_parsed, None)
+        self.assertEqual(application.option_parsed, None)
 
         application.run([])
         self.assertFalse(application.option_parsed)

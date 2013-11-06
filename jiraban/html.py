@@ -56,16 +56,14 @@ def status_style(status):
     return "status-%s" % status.lower()
 
 
-def sprite_url(sprite, media="media"):
+def sprite_url(sprite, jira):
     """Filter a sprite name into a base64 encoded data url."""
-    filename = "%s.png" % sprite.replace("-", "_")
-    path = os.path.join(media, filename)
-    with open(path) as f:
-        data = b64encode(f.read())
-        return "data:image/png;base64,%s" % data
+    icon_ext = os.path.splitext(sprite)[1].lstrip(".")
+    content = jira.get_icon(sprite.replace("-", "_")).read()
+    return "data:image/%s;base64,%s" % (icon_ext, b64encode(content))
 
 
-def generate_html(board, media="media"):
+def generate_html(board, jira):
     """Generate an HTML kanban board to represent L{Item}s."""
     environment = Environment(loader=PackageLoader("jiraban", "templates"))
 
@@ -79,7 +77,7 @@ def generate_html(board, media="media"):
     sprites = sorted(set(
         [priority_style(p) for p in PRIORITY_ORDER] +
         [status_style(s) for s in STATUS_ORDER]))
-    environment.filters["sprite_url"] = lambda s: sprite_url(s, media)
+    environment.filters["sprite_url"] = lambda s: sprite_url(s, jira)
 
     # Filter priority and status names to CSS classes.
     environment.filters["priority_style"] = priority_style

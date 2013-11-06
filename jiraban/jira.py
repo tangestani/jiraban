@@ -47,40 +47,66 @@ class JIRAError(Exception):
     pass
 
 
+class JIRALink:
+
+    def __init__(self, session, url):
+        self._session = session
+        self.url = url
+
+    def read(self):
+        response = self._session.get(self.url)
+        try:
+            response.raise_for_status()
+        except HTTPError, e:
+            raise JIRAError("Failed to get %s: %s" % (self.url, e))
+
+        return response.raw.read()
+
+
 class JIRA:
 
-    DEFAULT_OPTIONS = {
-        "server": "http://localhost:8080/jira",
-        "verify": True,
-    }
-
-    def __init__(self, username=None, password=None, **options):
-        session_factory = options.pop("session_factory", Session)
-        self._options = self.DEFAULT_OPTIONS
-        self._options.update(options)
-
+    def __init__(
+            self, server, username=None, password=None, verify=True,
+            session_factory=Session):
         # Rip off trailing slash since all urls depend on that.
-        if self._options["server"].endswith("/"):
-            self._options["server"] = self._options["server"][:-1]
+        self.server = server.rstrip("/")
 
         self._session = session_factory()
-        self._session.verify = self._options["verify"]
+        self._session.verify = verify
         self._session.auth = (username, password)
 
-    def get_items(self, jql, cache=None):
-        xml_url = self.get_xml_url(jql)
+    def get_link(self, path, query=""):
+        base_url = urlparse(self.server)
+        qs = urlencode(query)
+        url = urlunparse(
+            (base_url.scheme, base_url.netloc, path, None, qs, None))
+        return JIRALink(self._session, url)
+
+    def get_icon(self, icon):
+        return self.get_link("/images/icons/%s.gif" % icon)
+
+    def query_xml(self, jql, temp_max=1000):
+        return self.get_link(
+            "/sr/jira.issueviews:searchrequest-xml/temp/SearchRequest.xml", {
+                "jqlQuery": jql,
+                "tempMax": temp_max,
+                })
+
+    def query_html(self, jql, run_query=True, clear=True):
+        return self.get_link("/secure/IssueNavigator!executeAdvanced.jspa", {
+            "jqlQuery": jql,
+            "runQuery": run_query,
+            "clear": clear,
+            })
+
+    def iter_items(self, jql, cache=None):
+        xml_link = self.query_xml(jql)
 
         if cache and os.path.exists(cache):
             with open(cache) as f:
                 content = f.read()
         else:
-            response = self._session.get(xml_url)
-            try:
-                response.raise_for_status()
-            except HTTPError, e:
-                raise JIRAError(e)
-
-            content = response.content
+            content = xml_link.read()
             if cache:
                 with open(cache, "w") as f:
                     f.write(content)
@@ -92,26 +118,6 @@ class JIRA:
 
         for element in root.findall(".//item"):
             yield self._create_item(element)
-
-    def get_xml_url(self, jql):
-        return self.get_url(
-            "/sr/jira.issueviews:searchrequest-xml/temp/SearchRequest.xml", {
-                "jqlQuery": jql,
-                "tempMax": 1000,
-                })
-
-    def get_html_url(self, jql):
-        return self.get_url("/secure/IssueNavigator!executeAdvanced.jspa", {
-            "jqlQuery": jql,
-            "runQuery": True,
-            "clear": True,
-            })
-
-    def get_url(self, path, query):
-        base_url = urlparse(self._options["server"])
-        qs = urlencode(query)
-        return urlunparse(
-            (base_url.scheme, base_url.netloc, path, None, qs, None))
 
     def _create_item(self, element):
         return Item(

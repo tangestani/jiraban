@@ -39,16 +39,16 @@ class Marker:
 marker = Marker("marker")
 
 
-class CustomVariable(Variable):
+class FakeVariable(Variable):
 
     def __init__(self, *args, **kwargs):
         self.gets = []
         self.sets = []
-        super(CustomVariable, self).__init__(*args, **kwargs)
+        super(FakeVariable, self).__init__(*args, **kwargs)
 
     def get(self):
         """Cache in L{gets} if the returned value is not None."""
-        value = super(CustomVariable, self).get()
+        value = super(FakeVariable, self).get()
         if value is not None:
             self.gets.append(value)
 
@@ -56,7 +56,7 @@ class CustomVariable(Variable):
 
     def set(self, value):
         """Cache in L{sets} if the given value is not None."""
-        super(CustomVariable, self).set(value)
+        super(FakeVariable, self).set(value)
         if value is not None:
             self.sets.append(value)
 
@@ -64,36 +64,36 @@ class CustomVariable(Variable):
 class TestVariable(TestCase):
 
     def test_instantiate_with_value(self):
-        variable = CustomVariable(value=marker)
+        variable = FakeVariable(value=marker)
         self.assertEqual(variable.sets, [marker])
 
     def test_instantiate_with_value_factory(self):
-        variable = CustomVariable(value_factory=lambda: marker)
+        variable = FakeVariable(value_factory=lambda: marker)
         self.assertEqual(variable.sets, [marker])
 
     def test_instantiate_with_attribute(self):
-        variable = CustomVariable(attribute=marker)
+        variable = FakeVariable(attribute=marker)
         self.assertEqual(variable.attribute, marker)
 
     def test_get_none(self):
-        variable = CustomVariable()
-        self.assertIs(variable.get(), None)
+        variable = FakeVariable()
+        self.assertEqual(variable.get(), None)
         self.assertEqual(variable.sets, [])
         self.assertEqual(variable.gets, [])
 
     def test_set_get_none(self):
-        variable = CustomVariable()
+        variable = FakeVariable()
         variable.set(None)
-        self.assertIs(variable.get(), None)
+        self.assertEqual(variable.get(), None)
         self.assertEqual(variable.sets, [])
         self.assertEqual(variable.gets, [])
 
     def test_set_none_with_required(self):
-        variable = CustomVariable(required=True)
+        variable = FakeVariable(required=True)
         self.assertRaises(ValueError, variable.set, None)
 
     def test_get_none_with_required(self):
-        variable = CustomVariable(required=True)
+        variable = FakeVariable(required=True)
         self.assertRaises(ValueError, variable.get)
 
 

@@ -68,18 +68,20 @@ class Item:
     link = String(required=True)
     priority = String(required=True)
     status = String(required=True)
+    project = Unicode(required=True)
     summary = Unicode(required=True)
     assignee = Unicode()
     username = String()
     components = List()
     fix_versions = List()
 
-    def __init__(self, id, link, priority, status, summary,
+    def __init__(self, id, link, priority, status, project, summary,
             assignee=None, username=None, components=None, fix_versions=None):
         self.id = id
         self.link = link
         self.priority = priority
         self.status = status
+        self.project = project
         self.summary = summary
         self.assignee = assignee
         self.username = username

@@ -125,6 +125,7 @@ class JIRA:
             element.find("link").text,
             element.find("priority").text,
             element.find("status").text,
+            element.find("project").text,
             element.find("summary").text,
             element.find("assignee").text,
             element.find("assignee").get("username"),

@@ -39,6 +39,7 @@ from jiraban.board import (
     ItemCollection,
     Story,
     )
+from jiraban.testing.unique import UniqueMixin
 
 from unittest import TestCase
 
@@ -47,23 +48,26 @@ class ItemMixin:
 
     def create_item(
             self, id="1", link="test link", priority=MAJOR, status=OPEN,
-            summary="test summary", **kwargs):
+            project="test project", summary="test summary", **kwargs):
         """Create an L{Item} with sensible default values."""
-        return Item(id, link, priority, status, summary, **kwargs)
+        return Item(id, link, priority, status, project, summary, **kwargs)
 
 
-class TestItem(ItemMixin, TestCase):
+class TestItem(ItemMixin, UniqueMixin, TestCase):
 
     def test_instantiate_with_default_values(self):
         """
         An ID, link, priority, status and summary must be provided when a
         L{Item} is instantiated. All other values default to C{None}.
         """
-        item = Item("1", "link", MAJOR, OPEN, "test summary")
+        project = self.get_unique_string()
+        summary = self.get_unique_string()
+        item = Item("1", "link", MAJOR, OPEN, project, summary)
         self.assertEqual(item.id, "1")
         self.assertEqual(item.priority, MAJOR)
         self.assertEqual(item.status, OPEN)
-        self.assertEqual(item.summary, "test summary")
+        self.assertEqual(item.project, project)
+        self.assertEqual(item.summary, summary)
         self.assertEqual(item.assignee, None)
         self.assertEqual(item.components, [])
         self.assertEqual(item.fix_versions, [])
@@ -73,14 +77,18 @@ class TestItem(ItemMixin, TestCase):
         In addition to the required values an assignee, 'In progress' date
         and a list of tags can be provided when a L{Item} is instantiated.
         """
-        item = Item(
-            "1", "link", MAJOR, OPEN, "test summary", assignee="name",
-            username="user", components="component", fix_versions="version")
+        assignee = self.get_unique_string()
+        username = self.get_unique_string()
+        component = self.get_unique_string()
+        fix_version = self.get_unique_string()
+        item = self.create_item(
+            assignee=assignee, username=username,
+            components=[component], fix_versions=[fix_version])
 
-        self.assertEqual(item.assignee, "name")
-        self.assertEqual(item.username, "user")
-        self.assertEqual(item.components, ["component"])
-        self.assertEqual(item.fix_versions, ["version"])
+        self.assertEqual(item.assignee, assignee)
+        self.assertEqual(item.username, username)
+        self.assertEqual(item.components, [component])
+        self.assertEqual(item.fix_versions, [fix_version])
 
     def test_sort_order_by_priority(self):
         """Higher priority items come first."""
